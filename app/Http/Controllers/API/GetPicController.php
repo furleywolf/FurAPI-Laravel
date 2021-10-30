@@ -27,8 +27,8 @@ class GetPicController extends BaseController
         $valid_type=array(['url','json','redirect']);
         $valid_class=array(['m','pc','fursuit']);
         //用于重定向返回图片地址
-//        if($class == 'random')array_rand($valid_class));
-        if($class == 'random')$class='pc';
+        if($class == 'random')$class=$valid_class[0][array_rand($valid_class[0])];
+//        if($class == 'random')$class='pc';
         if(in_array($type,$valid_type))return $this->jsonResponse(['error'],"不支持的返回类型",415);
         if(in_array($class,$valid_class))return $this->jsonResponse(['error'],"不支持的图片种类",400);
         $image = $this->getData($class);

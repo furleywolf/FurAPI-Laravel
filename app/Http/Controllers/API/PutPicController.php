@@ -35,6 +35,7 @@ class PutPicController extends BaseController
     private function putData($class,$url,$title = null,$description= null,$from = null,$fromurl=null,$tag=null,$imgtype='acg'){
         $table=DB::table('furpic_'.$class);
         $table->insert([
+            'class' =>$class,
             'title'=>$title,
             'url' => $url,
             'description'=>$description,
