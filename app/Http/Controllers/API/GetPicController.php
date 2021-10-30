@@ -26,8 +26,10 @@ class GetPicController extends BaseController
     {
         $valid_type=array(['url','json','redirect']);
         $valid_class=array(['m','pc','fursuit']);
+        $acg_class=array(['m','pc']);
         //用于重定向返回图片地址
         if($class == 'random')$class=$valid_class[0][array_rand($valid_class[0])];
+        if($class == 'acg')$class=$acg_class[0][array_rand($acg_class[0])];
 //        if($class == 'random')$class='pc';
         if(in_array($type,$valid_type))return $this->jsonResponse(['error'],"不支持的返回类型",415);
         if(in_array($class,$valid_class))return $this->jsonResponse(['error'],"不支持的图片种类",400);
@@ -37,10 +39,10 @@ class GetPicController extends BaseController
                 return $this->redirectResponse($image->url);
                 break;
             case 'json':
-                return $this->jsonResponse($image);
+                return $this->json($image);
                 break;
             case 'url':
-                return $this->urlResponse($image);
+                return $this->urlResponse($image->url);
                 break;
             default:
                 return $this->jsonResponse(['error'],"不支持的返回类型",415);
