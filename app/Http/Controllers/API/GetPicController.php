@@ -8,6 +8,7 @@ use App\Http\Controllers\BaseController;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Symfony\Component\Console\Input\Input;
 
 
 class GetPicController extends BaseController
@@ -16,25 +17,47 @@ class GetPicController extends BaseController
      * Display a listing of the resource.
      *
      *
+     * @param string $type
+     * @param string $class
      * @return Response
      */
 
-    public function index()
+    public function index($type = 'redirect',$class = 'random')
     {
+        $valid_type=array(['url','json','redirect']);
+        $valid_class=array(['m','pc','fursuit']);
         //用于重定向返回图片地址
-        $image = $this->getData();
-        return $this->redirectResponse($image->url);
+//        if($class == 'random')array_rand($valid_class));
+        if($class == 'random')$class='pc';
+        if(in_array($type,$valid_type))return $this->jsonResponse(['error'],"不支持的返回类型",415);
+        if(in_array($class,$valid_class))return $this->jsonResponse(['error'],"不支持的图片种类",400);
+        $image = $this->getData($class);
+        switch ($type){
+            case 'redirect':
+                return $this->redirectResponse($image->url);
+                break;
+            case 'json':
+                return $this->jsonResponse($image);
+                break;
+            case 'url':
+                return $this->urlResponse($image);
+                break;
+            default:
+                return $this->jsonResponse(['error'],"不支持的返回类型",415);
+                break;
+        }
     }
-    public function url()
+
+    private function url($image)
     {
         //用于直接返回图片地址
-        $image = $this->getData();
+
         return $this->urlResponse($image->url);
     }
-    public function json()
+    private function json($image)
     {
         //用于以json方式返回图片数据
-        $image = $this->getData();
+
         return $this->jsonResponse([
             'id'=>$image->id,
             'title'=>$image->title,
@@ -50,16 +73,16 @@ class GetPicController extends BaseController
         ]);
         return $this->jsonResponse(['test']);
     }
-    private function getData()
+    private function getData($class)
     {
         //用于获取数据（后期需要优化随即查询SQL）
-        $image = DB::table('furpic')
-            ->select('*')
-            ->from('furpic')
-            ->orderByRaw('rand()')
-            ->limit(1)
-            ->first();
-        return $image;
+        $table='furpic_'.$class;
+        $query = DB::table($table);
+        $return=$query->join(
+            DB::raw("(SELECT ROUND(RAND() * ((SELECT MAX(id) FROM `$table`)-(SELECT MIN(id) FROM `$table`))+(SELECT MIN(id) FROM `$table`)) AS xid) as t2"),
+            $table.'.id', '>=', 't2.xid'
+        )->limit(1)->get();
+return $return->first();
     }
 
     /**
