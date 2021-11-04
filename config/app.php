@@ -123,6 +123,8 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
+    'authServer' => env("AUTH_SERVER","https://pic.kemono.cool/api/v1/tokenAuth/"),
+
     /*
     |--------------------------------------------------------------------------
     | Autoloaded Service Providers

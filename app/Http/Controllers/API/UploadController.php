@@ -4,22 +4,33 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\BaseController;
 use App\Http\Controllers\Controller;
-use DB;
+use Facade\FlareClient\Stacktrace\File;
 use Illuminate\Http\Request;
+use DB;
+use Storage;
 
-class PutPicController extends BaseController
+class UploadController extends BaseController
 {
     /**
      * Display a listing of the resource.
      *
-     * @param Request $request
-     * @param $class
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request ,$token ,$class)
+    public function index()
     {
         //
 
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        //
         $status = $request->input('decrypted');
         switch ($status){
             case 'success':
@@ -34,43 +45,25 @@ class PutPicController extends BaseController
                 return $this->jsonResponse(['Authenticate failed'],'Access Denied',403);
                 break;
         }
-        if($this->putData($class,
-            $request->input('url'),
-            $request->input('title'),
-            $request->input('description'),
-            $request->input('from'),
-            $request->input('fromurl'),
-            $request->input('tag'),
-            $request->input('imgtype'),
-            $request->input('user_id')
-        ))return $this->jsonResponse(['操作成功']);
+        $validator = \Validator::make($request->all(), [
+            'file' => 'required|max:5096|image'
+        ]);
+        if ($validator->fails()) {
+            return $this->jsonResponse(['Image incorrect'],'Access Denied',403);
+        }
+        $path = $request->file('file')->store(date('Ym'),'public');
+        $this->putSQL($path,$request->input('user_id'));
+        return $this->jsonResponse(['url'=>config('app.url')."/FurPic/".$path,"time"=>time()],"操作成功");
 
     }
-    private function putData($class,$url,$title = null,$description= null,$from = null,$fromurl=null,$tag=null,$imgtype='acg',$uploader=null){
-        $table=DB::table('furpic_'.$class);
+
+    private function putSQL($file,$qq){
+        $table=DB::table('file');
         $table->insert([
-            'class' =>$class,
-            'title'=>$title,
-            'url' => $url,
-            'description'=>$description,
-            'from'=>$from,
-            'fromurl'=>$fromurl,
-            'tag'=>json_encode($tag),
-            'imgtype'=>$imgtype,
-            'uploader'=>$uploader
+            'file' =>$file,
+            'qq' => $qq
         ]);
         return true;
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
     }
 
     /**

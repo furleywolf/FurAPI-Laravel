@@ -16,3 +16,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+Route::get('/upload', function () {
+    return response()->view('uploader')->header('X-Furry',"Tail.icu by Furley");
+});
